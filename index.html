@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>真相解碼特務：媒體識讀挑戰</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #2b2d42;
+            --text-light: #8d99ae;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            min-height: 100vh;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container */
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            min-height: 90vh;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Sections */
+        section {
+            display: none; /* Hide all by default */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            text-align: center;
+            color: var(--primary);
+        }
+        
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .tagline { text-align: center; color: var(--accent); font-weight: bold; font-size: 1.2rem; margin-bottom: 2rem; }
+
+        /* Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 50px;
+            background: var(--primary);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .btn:hover { background: var(--secondary); transform: scale(1.02); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input {
+            width: 100%; padding: 0.8rem;
+            border: 2px solid #ddd; border-radius: 10px;
+            font-size: 1rem; transition: border 0.3s;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+
+        /* Learning Grid */
+        .learning-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .learning-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .learning-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .learning-card.completed { background: #e0fbfc; border-color: var(--success); }
+        .badge-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+        .badge-status { font-size: 0.8rem; color: var(--text-light); }
+        .learning-card.completed .badge-status { color: var(--success); font-weight: bold; }
+
+        /* Modal for Learning */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 15px;
+            width: 90%; max-width: 400px;
+            text-align: center;
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn { from {transform: scale(0.8);} to {transform: scale(1);} }
+
+        /* Quiz Styles */
+        .progress-bar {
+            width: 100%; height: 10px; background: #eee;
+            border-radius: 5px; margin-bottom: 1.5rem; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: var(--accent); width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .question-card {
+            background: white; padding: 0;
+        }
+        .question-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 1.5rem; line-height: 1.5; }
+        
+        .options-list { list-style: none; padding: 0; }
+        .option-item {
+            background: #f8f9fa; border: 2px solid #e9ecef;
+            padding: 1rem; border-radius: 10px; margin-bottom: 0.8rem;
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .option-item:hover { border-color: var(--primary); background: #f0f4ff; }
+        .option-item.selected { border-color: var(--primary); background: #dce6ff; }
+        .option-item.correct { border-color: var(--success); background: #d1fae5; }
+        .option-item.wrong { border-color: var(--accent); background: #ffe5ec; }
+
+        .feedback-box {
+            background: #f0f9ff; padding: 1rem; border-radius: 10px;
+            margin-top: 1rem; border-left: 5px solid var(--primary);
+            display: none;
+        }
+        .feedback-title { font-weight: bold; display: block; margin-bottom: 0.3rem; }
+
+        /* Result Page */
+        .result-stats {
+            background: #f8f9fa; padding: 1.5rem; border-radius: 15px;
+            margin-bottom: 1.5rem; text-align: left;
+        }
+        .score-display {
+            font-size: 3rem; font-weight: bold; color: var(--accent);
+            text-align: center; margin: 1rem 0;
+        }
+        .action-steps {
+            text-align: left; background: #fff3cd; padding: 1rem;
+            border-radius: 10px; margin-bottom: 1rem;
+        }
+        .action-steps li { margin-bottom: 0.5rem; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: #333; color: white; padding: 12px 24px;
+            border-radius: 50px; z-index: 200; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .toast.show { opacity: 1; }
+
+        /* Helper */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .app-container { padding: 1.5rem; min-height: 100vh; border-radius: 0; }
+            .learning-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- SECTION A: Intro -->
+    <section id="intro-section" class="active">
+        <div style="text-align: center; margin-top: 2rem;">
+            <span style="font-size: 4rem;">🕵️‍♂️</span>
+        </div>
+        <h1>真相解碼特務</h1>
+        <p class="tagline">別讓你的人生被標題黨帶著走</p>
+        <div style="background: #f0f4ff; padding: 1.5rem; border-radius: 15px; margin: 2rem 0;">
+            <p>特務你好，網路世界充滿了陷阱。我們需要你完成兩個階段的訓練：</p>
+            <ol style="text-align: left;">
+                <li>蒐集 6 枚識讀徽章</li>
+                <li>通過 10 題實戰測驗</li>
+            </ol>
+            <p>準備好接受挑戰了嗎？</p>
+        </div>
+        <button class="btn" onclick="goToSection('user-info-section')">開始任務 Start Mission</button>
+    </section>
+
+    <!-- SECTION: User Info -->
+    <section id="user-info-section">
+        <h2>建立特務檔案</h2>
+        <p class="text-center">請輸入你的基本資料以登錄系統</p>
+        <div class="form-group">
+            <label>班級 (例: 801)</label>
+            <input type="text" id="input-class" placeholder="請輸入班級">
+        </div>
+        <div class="form-group">
+            <label>座號 (數字)</label>
+            <input type="number" id="input-seat" placeholder="請輸入座號">
+        </div>
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" id="input-name" placeholder="請輸入姓名">
+        </div>
+        <button class="btn" onclick="validateAndStart()">確認並開始訓練</button>
+    </section>
+
+    <!-- SECTION B: Learning Interaction -->
+    <section id="learning-section">
+        <h2>特務技能訓練</h2>
+        <p class="text-center">點擊卡片完成互動，收集 6 枚徽章！</p>
+        <div style="text-align: center; margin-bottom: 1rem;">
+            進度：<span id="badge-count">0</span> / 6
+        </div>
+        
+        <div class="learning-grid" id="badge-grid">
+            <!-- Cards will be generated by JS -->
+        </div>
+
+        <button class="btn" id="btn-start-quiz" disabled onclick="startQuiz()">進入實戰測驗 (需收集完畢)</button>
+    </section>
+
+    <!-- SECTION C: Quiz -->
+    <section id="quiz-section">
+        <div class="progress-bar">
+            <div class="progress-fill" id="quiz-progress"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #666;">
+            <span id="question-counter">Question 1/10</span>
+            <span id="current-score" style="display:none;">Score: 0</span>
+        </div>
+
+        <div class="question-card">
+            <div class="question-text" id="question-text">題目文字載入中...</div>
+            <ul class="options-list" id="options-container">
+                <!-- Options generated by JS -->
+            </ul>
+        </div>
+
+        <div class="feedback-box" id="feedback-box">
+            <span class="feedback-title" id="feedback-title"></span>
+            <span id="feedback-text"></span>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button class="btn btn-outline" id="prev-btn" onclick="prevQuestion()" style="display:none;">上一題</button>
+            <button class="btn" id="next-btn" onclick="nextQuestion()" disabled>下一題</button>
+        </div>
+    </section>
+
+    <!-- SECTION D: Result -->
+    <section id="result-section">
+        <h2>任務報告書</h2>
+        <div class="result-stats">
+            <p><strong>特務代號：</strong> <span id="res-class"></span> - <span id="res-seat"></span> <span id="res-name"></span></p>
+            <div class="score-display">總分：<span id="res-score">0</span> / 100</div>
+            <p style="font-size: 0.9rem; color: #666;">作答時間：<span id="res-time"></span></p>
+        </div>
+
+        <div class="action-steps">
+            <h3>🛡️ 特務行動指南：</h3>
+            <ol>
+                <li>轉發訊息前，請給自己 10 秒鐘思考。</li>
+                <li>看到情緒化標題，先找第二個來源查證。</li>
+                <li>不明連結與好康，千萬不要隨意點擊。</li>
+            </ol>
+        </div>
+
+        <h3>答題明細</h3>
+        <div id="result-details" style="max-height: 200px; overflow-y: auto; font-size: 0.9rem; margin-bottom: 1rem; border: 1px solid #eee; padding: 10px;">
+            <!-- Details generated by JS -->
+        </div>
+
+        <button class="btn" id="btn-submit" onclick="submitResults()">📤 傳送結案報告 (Submit)</button>
+        <p id="submit-status" class="text-center" style="margin-top: 10px; font-size: 0.9rem; color: #666;"></p>
+    </section>
+</div>
+
+<!-- Modal for Badges -->
+<div class="modal-overlay" id="badge-modal">
+    <div class="modal-content">
+        <span style="font-size: 3rem; display:block; margin-bottom:1rem;" id="modal-icon"></span>
+        <h3 id="modal-title"></h3>
+        <p id="modal-desc" style="color: #666; margin-bottom: 1.5rem;"></p>
+        
+        <div id="modal-interaction-area" style="background: #f0f4ff; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <!-- Interaction content injected here -->
+        </div>
+
+        <button class="btn" onclick="completeBadge()">✅ 我學會了 (領取徽章)</button>
+    </div>
+</div>
+
+<div class="toast" id="toast">訊息</div>
+
+<script>
+/**
+ * 配置區域
+ * 請將 GAS_URL 替換為您部署 Google Apps Script 後取得的網址
+ */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxRGGD7xU05XrZBFdHP-LX49pw1loIqGtliMZWKk6so8n9E0lQbfmAP7GECqYcyqKh-/exec"; 
+
+// --- 1. 資料庫 (題目與學習點) ---
+
+const learningPoints = [
+    { id: 1, title: "檢視來源", icon: "🏭", desc: "是正規新聞媒體，還是無名內容農場？", 
+      interaction: "情境：看到網址是 `news.xbz123.com` 且滿版廣告。\n任務：這是可信來源嗎？ (請心中回答)" },
+    { id: 2, title: "檢視作者", icon: "✍️", desc: "文章有記者署名嗎？還是匿名爆料？", 
+      interaction: "情境：文章寫「據某網友透漏...」卻沒寫記者名字。\n任務：這可能是真的新聞嗎？" },
+    { id: 3, title: "檢視時間", icon: "📅", desc: "是最新消息，還是把舊聞當新聞炒作？", 
+      interaction: "情境：標題寫「今日發生」，但照片裡的人穿著 10 年前的流行服飾。\n任務：請檢查發布日期！" },
+    { id: 4, title: "檢視可信度", icon: "🔍", desc: "有其他媒體報導嗎？有專業數據佐證嗎？", 
+      interaction: "情境：只有一個群組在傳，Google 搜尋完全找不到新聞。\n任務：這通常是假消息。" },
+    { id: 5, title: "檢視意圖", icon: "🎯", desc: "這是廣告業配，還是客觀報導？", 
+      interaction: "情境：網紅一直說產品好話，完全沒缺點。\n任務：注意這可能是「業配文」。" },
+    { id: 6, title: "不輕易轉發", icon: "🛑", desc: "轉發前多想三秒，別成為造謠幫兇。", 
+      interaction: "情境：看到「認同請分享」或「不轉會倒楣」。\n任務：這類情緒勒索通常有詐，請停止轉發。" }
+];
+
+const questions = [
+    { q: "某新聞節目介紹一間「超夯飲料店」，主持人不斷強調「一定要喝」、「CP值爆表」，但沒有提到缺點。你最應該先做的是？", options: ["立刻和同學一起去買", "相信新聞，因為是電視播的", "查看是否為業配，並參考其他評價", "覺得主持人很會介紹就好"], ans: 2, topic: "檢視意圖/業配" },
+    { q: "在 YouTube 影片中，實況主一邊聊天一邊一直使用某品牌耳機，但沒有說明是廣告，這種情況最可能是？", options: ["新聞報導", "置入性行銷", "網路謠言", "假新聞"], ans: 1, topic: "檢視意圖/置入" },
+    { q: "同一場遊行活動，不同新聞台的標題完全相反，最可能的原因是？", options: ["有一邊一定在說謊", "記者剛好心情不好", "媒體有不同立場與角度", "網友亂改標題"], ans: 2, topic: "檢視立場" },
+    { q: "如果你只看某一個固定新聞頻道，最可能出現的問題是？", options: ["會變得更聰明", "容易形成偏頗觀點", "記憶力變好", "比別人更有判斷力"], ans: 1, topic: "檢視立場/同溫層" },
+    { q: "Line 群組傳來一則訊息：「快轉！今晚不能開冷氣，會出事！」但沒有說明來源與時間。這最可能是？", options: ["官方公告", "恐怖型謠言", "學校通知", "新聞快訊"], ans: 1, topic: "網路謠言特徵" },
+    { q: "誤信網路偏方「喝某種神奇飲料可以治病」，最可能造成的後果是？", options: ["身體更健康", "延誤治療、造成傷害", "節省醫療費", "提高免疫力"], ans: 1, topic: "謠言影響" },
+    { q: "看到一篇誇張新聞來自「xx爆料網」、「每日必看」，你應該？", options: ["馬上分享", "看標題就相信", "懷疑是否為內容農場", "留言罵作者"], ans: 2, topic: "檢視來源" },
+    { q: "一篇文章內容很聳動，但沒有作者名字，最正確的態度是？", options: ["內容有趣就好", "先不要完全相信", "一定是真的", "朋友傳的就沒問題"], ans: 1, topic: "檢視作者" },
+    { q: "某篇新聞被大量轉傳，但其實是 5 年前的舊聞，這提醒我們要注意？", options: ["標題大小", "留言數量", "發布時間", "圖片好不好看"], ans: 2, topic: "檢視時間" },
+    { q: "看到一則「認同請分享」的訊息，最正確的行為是？", options: ["趕快轉發", "先查證再決定", "傳給更多人", "不用想太多"], ans: 1, topic: "不輕易轉發" }
+];
+
+// --- 2. 狀態變數 ---
+let userProfile = { class: "", seat: "", name: "" };
+let badgesEarned = []; // Store IDs
+let currentQuestionIndex = 0;
+let userAnswers = new Array(10).fill(null); // Store user choice index (0-3)
+let currentBadgeId = null;
+
+// --- 3. 初始化與導航 ---
+
+function goToSection(sectionId) {
+    document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+    window.scrollTo(0,0);
+}
+
+function validateAndStart() {
+    const c = document.getElementById('input-class').value.trim();
+    const s = document.getElementById('input-seat').value.trim();
+    const n = document.getElementById('input-name').value.trim();
+
+    if(!c || !s || !n) {
+        showToast("⚠️ 請完整填寫所有欄位");
+        return;
+    }
+    if(isNaN(s)) {
+        showToast("⚠️ 座號必須是數字");
+        return;
+    }
+
+    userProfile = { class: c, seat: s, name: n };
+    initLearningSection();
+    goToSection('learning-section');
+}
+
+// --- 4. 學習互動區邏輯 ---
+
+function initLearningSection() {
+    const grid = document.getElementById('badge-grid');
+    grid.innerHTML = '';
+    learningPoints.forEach(pt => {
+        const div = document.createElement('div');
+        div.className = 'learning-card';
+        div.id = `badge-card-${pt.id}`;
+        div.onclick = () => openBadgeModal(pt.id);
+        div.innerHTML = `
+            <span class="badge-icon">${pt.icon}</span>
+            <div style="font-weight:bold;">${pt.title}</div>
+            <div class="badge-status">點擊解鎖</div>
+        `;
+        grid.appendChild(div);
+    });
+    updateBadgeProgress();
+}
+
+function openBadgeModal(id) {
+    if(badgesEarned.includes(id)) return; // Already earned
+    currentBadgeId = id;
+    const pt = learningPoints.find(p => p.id === id);
+    document.getElementById('modal-icon').textContent = pt.icon;
+    document.getElementById('modal-title').textContent = pt.title;
+    document.getElementById('modal-desc').textContent = pt.desc;
+    document.getElementById('modal-interaction-area').innerText = pt.interaction;
+    document.getElementById('badge-modal').style.display = 'flex';
+}
+
+function completeBadge() {
+    if(!badgesEarned.includes(currentBadgeId)) {
+        badgesEarned.push(currentBadgeId);
+        
+        // Update UI
+        const card = document.getElementById(`badge-card-${currentBadgeId}`);
+        card.classList.add('completed');
+        card.querySelector('.badge-status').textContent = '✅ 已獲得';
+        
+        updateBadgeProgress();
+    }
+    document.getElementById('badge-modal').style.display = 'none';
+}
+
+function updateBadgeProgress() {
+    document.getElementById('badge-count').textContent = badgesEarned.length;
+    const btn = document.getElementById('btn-start-quiz');
+    if(badgesEarned.length === 6) {
+        btn.disabled = false;
+        btn.textContent = "進入實戰測驗 (Go!)";
+    }
+}
+
+// --- 5. 測驗區邏輯 ---
+
+function startQuiz() {
+    currentQuestionIndex = 0;
+    renderQuestion();
+    goToSection('quiz-section');
+}
+
+function renderQuestion() {
+    const q = questions[currentQuestionIndex];
+    document.getElementById('question-counter').textContent = `Question ${currentQuestionIndex + 1}/10`;
+    
+    // Progress Bar
+    const progressPercent = ((currentQuestionIndex) / 10) * 100;
+    document.getElementById('quiz-progress').style.width = `${progressPercent}%`;
+
+    document.getElementById('question-text').textContent = `${currentQuestionIndex + 1}. ${q.q}`;
+    
+    const optionsContainer = document.getElementById('options-container');
+    optionsContainer.innerHTML = '';
+
+    // Reset UI state
+    document.getElementById('feedback-box').style.display = 'none';
+    document.getElementById('next-btn').disabled = true;
+    document.getElementById('prev-btn').style.display = currentQuestionIndex > 0 ? 'block' : 'none';
+
+    // If user already answered this question (when going back), show state
+    const savedAnswer = userAnswers[currentQuestionIndex];
+
+    q.options.forEach((opt, idx) => {
+        const li = document.createElement('li');
+        li.className = 'option-item';
+        li.textContent = opt; // Using A, B, C, D visually by order
+        li.dataset.idx = idx;
+        
+        // Add A, B, C, D prefixes
+        const prefixes = ['A. ', 'B. ', 'C. ', 'D. '];
+        li.textContent = prefixes[idx] + opt;
+
+        if (savedAnswer !== null) {
+            // Already answered state
+            li.style.pointerEvents = 'none'; // Lock
+            if (idx === q.ans) li.classList.add('correct');
+            if (idx === savedAnswer && idx !== q.ans) li.classList.add('wrong');
+        } else {
+            // Active state
+            li.onclick = () => handleAnswer(idx, li);
+        }
+        optionsContainer.appendChild(li);
+    });
+
+    // If already answered, show next button and feedback
+    if (savedAnswer !== null) {
+        showFeedback(savedAnswer === q.ans, q);
+        document.getElementById('next-btn').disabled = false;
+    }
+}
+
+function handleAnswer(selectedIndex, element) {
+    const q = questions[currentQuestionIndex];
+    userAnswers[currentQuestionIndex] = selectedIndex;
+
+    // Visual update
+    const options = document.querySelectorAll('.option-item');
+    options.forEach(opt => {
+        opt.style.pointerEvents = 'none'; // Lock all
+        const idx = parseInt(opt.dataset.idx);
+        if(idx === q.ans) opt.classList.add('correct'); // Always show correct
+        if(idx === selectedIndex && idx !== q.ans) opt.classList.add('wrong'); // Show error if wrong
+    });
+
+    showFeedback(selectedIndex === q.ans, q);
+    document.getElementById('next-btn').disabled = false;
+    document.getElementById('quiz-progress').style.width = `${((currentQuestionIndex + 1) / 10) * 100}%`;
+}
+
+function showFeedback(isCorrect, q) {
+    const box = document.getElementById('feedback-box');
+    const title = document.getElementById('feedback-title');
+    const text = document.getElementById('feedback-text');
+    
+    box.style.display = 'block';
+    if(isCorrect) {
+        box.style.borderColor = 'var(--success)';
+        box.style.background = '#e6fffa';
+        title.textContent = "🎉 答對了！特務好眼力！";
+        title.style.color = 'var(--success)';
+        text.textContent = "繼續保持這個判斷力！";
+    } else {
+        box.style.borderColor = 'var(--accent)';
+        box.style.background = '#fff0f3';
+        title.textContent = "⚠️ 答錯囉！注意盲點";
+        title.style.color = 'var(--accent)';
+        text.textContent = `這題是在考驗「${q.topic}」喔！`;
+    }
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < 9) {
+        currentQuestionIndex++;
+        renderQuestion();
+    } else {
+        calculateAndShowResult();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+    }
+}
+
+// --- 6. 結算與寄信區邏輯 ---
+
+function calculateAndShowResult() {
+    let score = 0;
+    let detailsHtml = '<ul style="padding-left: 20px;">';
+    
+    questions.forEach((q, idx) => {
+        const userAnsIdx = userAnswers[idx];
+        const isCorrect = userAnsIdx === q.ans;
+        if(isCorrect) score += 10;
+        
+        const mapABC = ['A','B','C','D'];
+        detailsHtml += `<li style="margin-bottom:5px; color: ${isCorrect ? 'green' : 'red'};">
+            第 ${idx+1} 題: ${isCorrect ? '⭕' : '❌'} (你選 ${mapABC[userAnsIdx]}, 正解 ${mapABC[q.ans]})
+        </li>`;
+    });
+    detailsHtml += '</ul>';
+
+    document.getElementById('res-class').textContent = userProfile.class;
+    document.getElementById('res-seat').textContent = userProfile.seat;
+    document.getElementById('res-name').textContent = userProfile.name;
+    document.getElementById('res-score').textContent = score;
+    document.getElementById('res-time').textContent = new Date().toLocaleString('zh-TW');
+    document.getElementById('result-details').innerHTML = detailsHtml;
+
+    goToSection('result-section');
+}
+
+function submitResults() {
+    const btn = document.getElementById('btn-submit');
+    const status = document.getElementById('submit-status');
+    
+    if (GAS_URL.includes("YOUR_ID_HERE")) {
+        showToast("❌ 錯誤：未設定後端網址 (GAS_URL)");
+        status.textContent = "請通知老師檢查程式設定。";
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "⏳ 傳送中...";
+    status.textContent = "正在將特務報告加密傳送至總部...";
+
+    // Prepare Data
+    const payload = {
+        user: userProfile,
+        score: document.getElementById('res-score').textContent,
+        answers: userAnswers.map((ansIdx, qIdx) => {
+            const mapABC = ['A','B','C','D'];
+            return {
+                qId: qIdx + 1,
+                question: questions[qIdx].q,
+                userSelect: mapABC[ansIdx],
+                correctSelect: mapABC[questions[qIdx].ans],
+                isCorrect: ansIdx === questions[qIdx].ans
+            };
+        }),
+        timestamp: new Date().toISOString()
+    };
+
+    // Send to GAS
+    // 使用 text/plain 避免 CORS preflight (OPTIONS) 錯誤，GAS 端使用 JSON.parse(e.postData.contents)
+    fetch(GAS_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8', 
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            btn.textContent = "✅ 傳送成功";
+            status.textContent = "報告已歸檔！感謝你的努力，特務！";
+            status.style.color = "green";
+            showToast("🎉 傳送成功！");
+        } else {
+            throw new Error('Script returned error');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        btn.textContent = "❌ 傳送失敗";
+        btn.disabled = false; // Allow retry
+        status.textContent = "連線異常，請檢查網路或稍後再試。";
+        status.style.color = "red";
+    });
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+</script>
+
+</body>
+</html>
