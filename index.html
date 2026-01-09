@@ -345,6 +345,7 @@
 /**
  * 配置區域
  * 請將 GAS_URL 替換為您部署 Google Apps Script 後取得的網址
+ * 務必確認您的 GAS 部署權限設定為「任何人 (Anyone)」
  */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxRGGD7xU05XrZBFdHP-LX49pw1loIqGtliMZWKk6so8n9E0lQbfmAP7GECqYcyqKh-/exec"; 
 
@@ -639,7 +640,6 @@ function submitResults() {
     };
 
     // Send to GAS
-    // 使用 text/plain 避免 CORS preflight (OPTIONS) 錯誤，GAS 端使用 JSON.parse(e.postData.contents)
     fetch(GAS_URL, {
         method: 'POST',
         headers: {
@@ -647,7 +647,21 @@ function submitResults() {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        // GAS 有時會返回 302 重定向到 HTML 頁面（若權限錯誤），這裡嘗試解析
+        return response.text().then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                // 如果不能解析成 JSON，通常代表返回了 HTML 錯誤頁面（例如登入畫面）
+                console.error("Non-JSON response:", text);
+                throw new Error("權限錯誤：伺服器回傳了網頁而非資料，請檢查 GAS 部署權限是否為「任何人」。");
+            }
+        });
+    })
     .then(data => {
         if(data.status === 'success') {
             btn.textContent = "✅ 傳送成功";
@@ -655,15 +669,16 @@ function submitResults() {
             status.style.color = "green";
             showToast("🎉 傳送成功！");
         } else {
-            throw new Error('Script returned error');
+            throw new Error('Script returned error: ' + (data.message || 'Unknown error'));
         }
     })
     .catch(err => {
         console.error(err);
         btn.textContent = "❌ 傳送失敗";
         btn.disabled = false; // Allow retry
-        status.textContent = "連線異常，請檢查網路或稍後再試。";
+        status.textContent = "連線異常，請檢查網路或權限設定。";
         status.style.color = "red";
+        alert("傳送失敗！\n\n可能原因：\n1. Google Apps Script 部署權限未設為「任何人」(最常見)\n2. 每日寄信額度已達上限\n\n錯誤訊息：" + err.message);
     });
 }
 
